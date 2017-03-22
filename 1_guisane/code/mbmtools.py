@@ -79,6 +79,16 @@ class MBM(object):
         self.resp_curve_1d(outputDir)
         self.resp_curve_2d(outputDir)
 
+    def set_lengthscale(self, l, which = None):
+        """
+        Change the lengthscale of the model; does NOT recondition the model
+        Use model.fit_model(optimize=False) to recondition with the new lengthscale
+        """
+        if which is not None:
+            self.model.kern.lengthscale[which] = l
+        else:
+            self.model.kern.lengthscale[i] = l[i]
+
     def save_params(self, outputDir):
         """
         Save model parameter array to the specified directory
@@ -88,7 +98,7 @@ class MBM(object):
     def predict_to_data(self, outputDir):
         self.predict_and_save(self.X, outputDir + '/datPredict.csv')
         if self.validX is not None:
-            self.predict_and_save(self.validX, outputDir + 'validPredict.csv')
+            self.predict_and_save(self.validX, outputDir + '/validPredict.csv')
 
     def predict_and_save(self, newX, outputFile, nsamp=1000, pcts=(2.5, 97.5)):
         """

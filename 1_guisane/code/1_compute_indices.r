@@ -24,18 +24,28 @@ phylogeny <- guisane$phylogenies[[guisane$bestPhylogeny]]
 speciesTraits <- guisane$traits
 covars <- guisane$env
 
+# drop covariates we aren't using, then scale and save scaling
+xycoords <- covars[,c('x', 'y')]
+covars <- covars[,-c(1:2,23:28,31)]
+covars <- scale(covars)
+cvscale <- cbind(center=attr(covars, 'scaled:center'), scale=attr(covars, 'scaled:scale'))
+saveRDS(cvscale, "1_guisane/dat/covariateScaling.rds")
+covars <- cbind(covars, xycoords)
+
 ## taxonomic             
 alphaT <- data.frame(simpson = simpson(coverSpecies), richness=richness(coverSpecies))
 betaT <- sorensen(coverSpecies)
 betaT <- melt(betaT, varnames=c('site1', 'site2'), value.name = 'sorensen_t')
 
 ## phylogenetic
-## drop genera that are missing from the phylogeny; convert to PA
+## drop genera that are missing from the phylogeny; convert to PA; also drop nonflowering plants
+dropGenera <- c('Selaginella', 'Botrychium', 'Equisetum', 'Polystichum', 'Dryopteris')
 coverGenus <- coverGenus[,which(colnames(coverGenus) %in% phylogeny$tip.label)]
+coverGenus <- coverGenus[,-which(colnames(coverGenus) %in% dropGenera)]
 coverGenus <- 1.0 * (coverGenus > 0)
 
 # compute MPD matrix
-phyDivMat <- mbmtools::mpd(comm = coverGenus, phylogeny=phylogeny)
+phyDivMat <- mbmtools::mpd(comm = coverGenus, phylogeny=phylogeny, dis.transform=sqrt)
 phyloAlpha <- data.frame(sites = rownames(coverGenus), mpd_ap= diag(phyDivMat))
 diag(phyDivMat) <- NA
 phyDivMat[upper.tri(phyDivMat)] <- NA
@@ -83,33 +93,35 @@ alpha <- merge(alpha, covars, by.x=1, by.y=0)
 rownames(alpha) <- alpha[,1]
 alpha <- alpha[,-1]
 
+
 # view alpha covariates to choose
-# for(y in 1:4)
-# {
-# 	for(x in 5:ncol(alpha))
-# 	{
-# 		fname = paste0('img/alpha/', colnames(alpha)[y], '_', colnames(alpha)[x], '.pdf')
-# 		pdf(fname)
-# 		plot(alpha[,x], alpha[,y], xlab=colnames(alpha)[x], ylab=colnames(alpha)[y],
-# 				 pch=20, col='blue')
-# 		legend('topright', pch=20, col='blue', legend=paste(round(cor(alpha[,x], alpha[,y]),3)))
-# 		dev.off()
-# 	}
-# }
+for(y in 1:4)
+{
+	for(x in 5:ncol(alpha))
+	{
+		fname = paste0('1_guisane/img/alpha/', colnames(alpha)[y], '_', colnames(alpha)[x], '.pdf')
+		pdf(fname)
+		plot(alpha[,x], alpha[,y], xlab=colnames(alpha)[x], ylab=colnames(alpha)[y],
+				 pch=20, col='blue')
+		legend('topright', pch=20, col='blue', legend=paste(round(cor(alpha[,x], alpha[,y]),3)))
+		dev.off()
+	}
+}
 
 # choose alpha covariates
 # chosen because they have the highest correlations with the response and correlations
 # with each other < 0.7
 richCovars <- c('bio6', 'bio15')
-simpCovars <- c('bio3', 'bio13', 'bio15')
+simpCovars <- c('bio3', 'bio13')
 mpdFCovars <- c('bio6','bio15')
 mpdPCovars <- c('bio5', 'bio15')
 
 # choose 20% of sites as holdouts and write data to disk
 fit_proportion <- 0.8
 fit_rows <- sample(nrow(alpha), as.integer(fit_proportion*nrow(alpha)))
-write.table(alpha[fit_rows,], 'dat/alpha_fit.csv', sep=',', row.names=FALSE)
-write.table(alpha[-fit_rows,], 'dat/alpha_holdout.csv', sep=',', row.names=FALSE)
+saveRDS(fit_rows, '1_guisane/dat/selected_rows_alpha.rds')
+write.table(alpha[fit_rows,], '1_guisane/dat/alpha_fit.csv', sep=',', row.names=FALSE)
+write.table(alpha[-fit_rows,], '1_guisane/dat/alpha_valid.csv', sep=',', row.names=FALSE)
 
 
 
@@ -173,7 +185,8 @@ beta_final <- merge(beta, finalBetaCovars, all.x=FALSE, all.y=TRUE)
 # for beta, the fit takes longer, so we fit to 50%
 fit_proportion <- 0.5
 fit_rows <- sample(nrow(beta_final), as.integer(fit_proportion*nrow(beta_final)))
-write.table(beta_final[fit_rows,], 'dat/beta_fit.csv', sep=',', row.names=FALSE)
-write.table(beta_final[-fit_rows,], 'dat/beta_holdout.csv', sep=',', row.names=FALSE)
+saveRDS(fit_rows, '1_guisane/dat/selected_rows_beta.rds')
+write.table(beta_final[fit_rows,], '1_guisane/dat/beta_fit.csv', sep=',', row.names=FALSE)
+write.table(beta_final[-fit_rows,], '1_guisane/dat/beta_valid.csv', sep=',', row.names=FALSE)
 
 
