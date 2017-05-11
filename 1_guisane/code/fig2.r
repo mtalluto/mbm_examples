@@ -28,7 +28,7 @@ lab.l = 2.5
 quartz(file='1_guisane/img/fig2.pdf', h=9, w=6, type='pdf')
 par(mfrow=c(3,2), bty='n', mar=c(3.4,3,0,0), oma=c(0.5,0.5,0.5,0.5), mgp=c(2, 0.5, 0), tcl=-0.2, family='ssp')
 yl <- c(0,1)
-mod <- gam(I(qnorm(simpson)) ~ s(bio3, 2) + s(bio13, 2), data=alphaFit)
+mod <- gam(I(qnorm(simpson)) ~ s(bio3, 4) + s(bio13, 4), data=alphaFit)
 with(rcSimp[1:250,], resp.curve(bio3, mean, lower=lower, upper=upper,
 	xyDat=alphaFit[,c('bio3', 'simpson')], xyValid = alphaValid[,c('bio3', 'simpson')], 
 	link = pnorm, col=cols[1], ylim=yl, xlab='Isothermality', ylab=""))
@@ -47,7 +47,7 @@ lines(xx, yy, col=cols[2])
 
 
 yl <- c(0,5)
-mod <- gam(mpd_af ~ s(bio6, 2) + s(bio15, 2), data=alphaFit)
+mod <- gam(mpd_af ~ s(bio6, 4) + s(bio15, 4), data=alphaFit)
 with(rcFunc[1:250,], resp.curve(bio6, mean, lower=lower, upper=upper,
 	xyDat=alphaFit[,c('bio6', 'mpd_af')], xyValid = alphaValid[,c('bio6', 'mpd_af')], 
 	col=cols[1], ylim=yl, xlab='Min Temp of Coldest Month (°C)', ylab=""))
@@ -65,7 +65,7 @@ lines(xx, yy, col=cols[2])
 
 
 yl <- c(0,20)
-mod <- gam(mpd_ap ~ s(bio5, 2) + s(bio15, 2), data=alphaFit)
+mod <- gam(mpd_ap ~ s(bio5, 4) + s(bio15, 4), data=alphaFit)
 with(rcPhy[1:250,], resp.curve(bio5, mean, lower=lower, upper=upper,
 	xyDat=alphaFit[,c('bio5', 'mpd_ap')], xyValid = alphaValid[,c('bio5', 'mpd_ap')], 
 	col=cols[1], ylim=yl, xlab='Max Temp of Warmest Month (°C)', ylab=""))

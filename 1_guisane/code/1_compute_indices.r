@@ -29,7 +29,7 @@ xycoords <- covars[,c('x', 'y')]
 covars <- covars[,-c(1:2,23:28,31)]
 covars <- scale(covars)
 cvscale <- cbind(center=attr(covars, 'scaled:center'), scale=attr(covars, 'scaled:scale'))
-saveRDS(cvscale, "1_guisane/dat/covariateScaling.rds")
+saveRDS(cvscale, "dat/covariateScaling.rds")
 covars <- cbind(covars, xycoords)
 
 ## taxonomic             
@@ -95,18 +95,18 @@ alpha <- alpha[,-1]
 
 
 # view alpha covariates to choose
-for(y in 1:4)
-{
-	for(x in 5:ncol(alpha))
-	{
-		fname = paste0('1_guisane/img/alpha/', colnames(alpha)[y], '_', colnames(alpha)[x], '.pdf')
-		pdf(fname)
-		plot(alpha[,x], alpha[,y], xlab=colnames(alpha)[x], ylab=colnames(alpha)[y],
-				 pch=20, col='blue')
-		legend('topright', pch=20, col='blue', legend=paste(round(cor(alpha[,x], alpha[,y]),3)))
-		dev.off()
-	}
-}
+# for(y in 1:4)
+# {
+# 	for(x in 5:ncol(alpha))
+# 	{
+# 		fname = paste0('img/alpha/', colnames(alpha)[y], '_', colnames(alpha)[x], '.pdf')
+# 		pdf(fname)
+# 		plot(alpha[,x], alpha[,y], xlab=colnames(alpha)[x], ylab=colnames(alpha)[y],
+# 				 pch=20, col='blue')
+# 		legend('topright', pch=20, col='blue', legend=paste(round(cor(alpha[,x], alpha[,y]),3)))
+# 		dev.off()
+# 	}
+# }
 
 # choose alpha covariates
 # chosen because they have the highest correlations with the response and correlations
@@ -119,33 +119,39 @@ mpdPCovars <- c('bio5', 'bio15')
 # choose 20% of sites as holdouts and write data to disk
 fit_proportion <- 0.8
 fit_rows <- sample(nrow(alpha), as.integer(fit_proportion*nrow(alpha)))
-saveRDS(fit_rows, '1_guisane/dat/selected_rows_alpha.rds')
-write.table(alpha[fit_rows,], '1_guisane/dat/alpha_fit.csv', sep=',', row.names=FALSE)
-write.table(alpha[-fit_rows,], '1_guisane/dat/alpha_valid.csv', sep=',', row.names=FALSE)
+saveRDS(fit_rows, 'dat/selected_rows_alpha.rds')
+write.table(alpha[fit_rows,], 'dat/alpha_fit.csv', sep=',', row.names=FALSE)
+write.table(alpha[-fit_rows,], 'dat/alpha_valid.csv', sep=',', row.names=FALSE)
 
 
 
 
 
-emp_logit <- function(x)
-{
-	eps <- 0
-	if(any(x == 0 | x == 1))
-	{
-		eps <- min(x[x != 0])
-	}
-	log((x+eps) / (1-x+eps))
-}
+# emp_logit <- function(x, eps)
+# {
+# 	if(missing(eps))
+# 	{
+# 		if(any(x == 0 | x == 1))
+# 		{
+# 			eps <- min(x[x != 0])
+# 		} else
+# 			eps <- 0
+# 	}
+# 	log((x+eps) / (1-x+eps))
+# }
+
 
 
 betaCovars <- env_dissim(covars, sites=0, scale=FALSE)
+
+
 # for some reason, our site names are switched
 cols <- which(colnames(betaCovars) %in% c('site1', 'site2'))
 colnames(betaCovars)[cols] <- rev(colnames(betaCovars)[cols])
 
 # merge covariates; we only keep the covariate rows, because it is just the lower diagonal and the matrices are symmetric
-beta_explo <- merge(beta, betaCovars, all.x=FALSE, all.y=TRUE)
-beta_explo$sorensen_t <- emp_logit(beta_explo$sorensen_t)
+# beta_explo <- merge(beta, betaCovars, all.x=FALSE, all.y=TRUE)
+# beta_explo$sorensen_t <- emp_logit(beta_explo$sorensen_t)
 
 # look over beta covariates
 # for(y in 3:5)
@@ -170,23 +176,53 @@ beta_explo$sorensen_t <- emp_logit(beta_explo$sorensen_t)
 # 	}
 # }
 
-# using the same vars for all ys for now
-bVars <- c('bio3', 'bio6', 'bio12', 'bio15')
+# old
+# bVars <- c('bio3', 'bio6', 'bio12', 'bio15')
+
+fix_colnames <- function(x)
+{
+	cols <- which(colnames(x) %in% c('site1', 'site2'))
+	colnames(x)[cols] <- rev(colnames(x)[cols])
+	x
+}
+
+# taxo and functional uses bio 6
+# phylo uses bio 15
+bio6 <- env_dissim(covars[,'bio6', drop=FALSE], sites=0,scale=FALSE)
+bio15 <- env_dissim(covars[,'bio15', drop=FALSE], sites=0,scale=FALSE)
+bio6 <- fix_colnames(bio6)
+bio15 <- fix_colnames(bio15)
+betaTaxo <- merge(beta[,1:3], bio6, all.x=FALSE, all.y=TRUE)
+betaTaxo$sorensen_t <- betaTaxo$sorensen_t - 1e-4 ## fix the ones
+betaFun <- merge(beta[,c(1,2,5)], bio6, all.x=FALSE, all.y=TRUE)
+betaPhylo <- merge(beta[,c(1,2,4)], bio15, all.x=FALSE, all.y=TRUE)
+
+
+fit_proportion <- 0.5
+fit_rows <- sample(nrow(betaTaxo), as.integer(fit_proportion*nrow(betaTaxo)))
+write.table(betaTaxo[fit_rows,],   'dat/betaTaxo_fit.csv', sep=',', row.names=FALSE)
+write.table(betaTaxo[-fit_rows,],  'dat/betaTaxo_valid.csv', sep=',', row.names=FALSE)
+write.table(betaPhylo[fit_rows,],  'dat/betaPhylo_fit.csv', sep=',', row.names=FALSE)
+write.table(betaPhylo[-fit_rows,], 'dat/betaPhylo_valid.csv', sep=',', row.names=FALSE)
+write.table(betaFun[fit_rows,],    'dat/betaFun_fit.csv', sep=',', row.names=FALSE)
+write.table(betaFun[-fit_rows,],   'dat/betaFun_valid.csv', sep=',', row.names=FALSE)
+
+
+
 
 # compute separate beta sets (because distance metric is different with different variables)
-finalBetaCovars <- env_dissim(covars[,bVars], sites=0, scale=FALSE)
+# finalBetaCovars <- env_dissim(covars[,bVars], sites=0, scale=FALSE)
 # for some reason, our site names are switched
-cols <- which(colnames(finalBetaCovars) %in% c('site1', 'site2'))
-colnames(finalBetaCovars)[cols] <- rev(colnames(finalBetaCovars)[cols])
+# cols <- which(colnames(finalBetaCovars) %in% c('site1', 'site2'))
+# colnames(finalBetaCovars)[cols] <- rev(colnames(finalBetaCovars)[cols])
 
-beta_final <- merge(beta, finalBetaCovars, all.x=FALSE, all.y=TRUE)
-
+# beta_final <- merge(beta, finalBetaCovars, all.x=FALSE, all.y=TRUE)
+# saveRDS(beta_final, "dat/betaUntransformed.rds")
+# beta_final$sorensen_t <- emp_logit(beta_final$sorensen_t)
 
 # for beta, the fit takes longer, so we fit to 50%
-fit_proportion <- 0.5
-fit_rows <- sample(nrow(beta_final), as.integer(fit_proportion*nrow(beta_final)))
-saveRDS(fit_rows, '1_guisane/dat/selected_rows_beta.rds')
-write.table(beta_final[fit_rows,], '1_guisane/dat/beta_fit.csv', sep=',', row.names=FALSE)
-write.table(beta_final[-fit_rows,], '1_guisane/dat/beta_valid.csv', sep=',', row.names=FALSE)
+# saveRDS(fit_rows, 'dat/selected_rows_beta.rds')
+# write.table(beta_final[fit_rows,], 'dat/beta_fit.csv', sep=',', row.names=FALSE)
+# write.table(beta_final[-fit_rows,], 'dat/beta_valid.csv', sep=',', row.names=FALSE)
 
 

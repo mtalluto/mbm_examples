@@ -140,13 +140,29 @@ class MBM(object):
         predDat = np.concatenate(predDat, axis=0)
         self.predict_and_save(predDat, outputDir + '/respCurve1D.csv')
 
-    def resp_curve_2d(self, outputDir, gridDim = 100):
+    def resp_curve_2d(self, outputDir, gridDim = 100, variableDims = [0,1]):
+        """
+        Produce a 2-d grid (in vertical format) predicting the model at all points along the grid
+
+        Grid locations are determined by the range of the variables in the original data. Constant
+        variables will be set to the mean.
+
+        outputDir: where to save
+        gridDrim: the size of the grid (will be n by n)
+        variableDims: which x-variables to use as variables; all others will be constant
+        """
         if(self.X.shape[1] > 2):
-            print("2d response curves not yet supported with >2 x variables")
-            return()
-        gradient1 = np.linspace(min(self.X[:,0]), max(self.X[:,0]), num=gridDim)
-        gradient2 = np.linspace(min(self.X[:,1]), max(self.X[:,1]), num=gridDim)
-        grid = expand_grid(gradient1, gradient2, ind=(0,1))
+            constantDims = [x for x in range(self.X.shape[1]) if x not in variableDims]
+            consts = [np.round(np.mean(self.X[:,j]), 3) for j in constantDims]
+            allDims = variableDims + constantDims
+        else:
+            constantDims = consts = None
+            allDims = variableDims
+        d1 = variableDims[0]
+        d2 = variableDims[1]
+        gradient1 = np.linspace(min(self.X[:,d1]), max(self.X[:,d1]), num=gridDim)
+        gradient2 = np.linspace(min(self.X[:,d2]), max(self.X[:,d2]), num=gridDim)
+        grid = expand_grid(gradient1, gradient2, c = consts, ind=allDims)
         self.predict_and_save(grid, outputDir + "/responseCurve2D.csv")
 
 
@@ -162,23 +178,26 @@ def make_dir(path):
 
 
 
-def expand_grid(d1, d2, c = None, ind = (0,1,2)):
+def expand_grid(d1, d2, c = None, ind = (0,1)):
     """
     Returns a list of all permutations of the arrays contained in values with an optional constant c
     
     d1, d2: 1D numpy arrays
-    c: optional constant
-    ind: indices in the output array for d1, d2, and c
+    c: optional constants
+    dind: indices in the output array for d1, d2
     """
-    rDim = 2 if c is None else 3
+    rDim = len(ind)
     res = np.empty((np.shape(d1)[0] * np.shape(d2)[0], rDim))
+    dind = ind[0:2]
+    cind = ind[2:] if c is not None else None
     k = 0
     for i in range(d1.shape[0]):
         for j in range(d2.shape[0]):
             res[k, ind[0]] = d1[i]
             res[k, ind[1]] = d2[j]
             if c is not None:
-                res[k, ind[2]] = c
+                for index, value in zip(cind, c):
+                    res[k, index] = value
             k += 1
     return res
 
