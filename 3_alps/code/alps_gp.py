@@ -1,12 +1,13 @@
 #!/usr/bin/env python
-
-#### if working in sublimetext
-# import os
-# os.chdir("..")
-
-
+import os
+import re
+import numpy as np
 import sys
 import warnings
+
+#### if working in sublimetext
+# os.chdir("..")
+
 # gpy prints lots of warnings during optimization; normally it is safe to ignore these
 if '--warn' in sys.argv:
     warn = True
@@ -16,7 +17,6 @@ else:
     warnings.filterwarnings("ignore")
 
 
-import re
 # find where to look got mbmtools
 try:
     p = re.compile('--dir=(.+)')
@@ -27,31 +27,34 @@ except IndexError:
 
 
 
-import numpy as np
-import mbmtools as mbm
 import GPy
+import mbmtools as mbm
 
-# xVars = ['dist_pToPET']
-xVars = ['distance', 'precip_PET_ratio', 'Temp_Isothermallity', 'Temp_ColdestPeriod_min', 'Rad_Jan_total', 'geogDistance100km']
-# xVars = ['dist_pToPET', 'pToPET', 'dist_isothermality', 'isothermality', 'dist_tempColdest', 'tempColdest', 'dist_radJan', 'radJan', 'geogDistance100km']
-
-file = 'dat/tasFit_1.csv'
-validDat = np.genfromtxt('dat/tasValid.csv', delimiter=',', skip_header=0, names=True, dtype=float)
+xVars = ['distance', 'bio_4', 'bio_6', 'bio_7', 'bio_15']
+mods = ['LDMC_sor', 'LDMC_mpd', 'PL_VEG_H_sor', 'PL_VEG_H_mpd', 'SEEDM_sor', 'SEEDM_mpd', 'SLA_sor',
+    'SLA_mpd', 'sor', 'f_sor', 'f_mpd', 'p_sor', 'p_mpd']
+file = 'dat/betaDiv.csv'
+validFile = 'dat/betaDiv_valid.csv'
+predictFile = 'dat/betaDiv_predict.csv'
 dat = np.genfromtxt(file, delimiter=',', skip_header=0, names=True, dtype=float)
+validDat = np.genfromtxt(validFile, delimiter=',', skip_header=0, names=True, dtype=float)
+predictDat = np.genfromtxt(predictFile, delimiter=',', skip_header=0, names=True, dtype=float)
 
-modTax = mbm.MBM(GPy.likelihoods.link_functions.Probit())
-modTax.add_data(dat, xVars, 'taxSorensen')
-modTax.add_data(validDat, datType='validation')
-modTax.add_prior(allPriors = GPy.priors.Gamma.from_EV(1.,3.))
-modTax.fit_model()
-modTax.predict_all('res/taxo')
+for m in mods:
+    # create result directories
+    rdir = 'res/' + m
+    if not os.path.isdir(rdir):
+        os.makedirs(rdir)
+    link = GPy.likelihoods.link_functions.Log() if re.match('mpd', m) else GPy.likelihoods.link_functions.Probit() 
+    mod = mbm.MBM(link)
+    mod.add_data(dat, xVars, m)
+    mod.add_data(validDat, atType='validation')
+    mod.add_prior(allPriors = GPy.priors.Gamma.from_EV(1.,3.))
+    mod.fit_model()
+    ######
+    stop()
+    # need a way to predit to the third dataset
+    mod.predict_all(rdir)
 
-modFun = mbm.MBM(GPy.likelihoods.link_functions.Probit())
-modFun.add_data(dat, xVars, 'functionalDistance')
-modFun.add_data(validDat, datType='validation')
-modFun.add_prior(allPriors = GPy.priors.Gamma.from_EV(1.,3.))
-modFun.fit_model()
-modFun.predict_all('res/func')
-    
     
 

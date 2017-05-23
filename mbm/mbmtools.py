@@ -72,12 +72,12 @@ class MBM(object):
         if optimize:
             self.model.optimize()
 
-    def predict_all(self, outputDir):
-        make_dir(outputDir)
-        self.save_params(outputDir)
-        self.predict_to_data(outputDir)
-        self.resp_curve_1d(outputDir)
-        self.resp_curve_2d(outputDir)
+    # def predict_all(self, outputDir):
+    #     make_dir(outputDir)
+    #     self.save_params(outputDir)
+    #     self.predict_to_data(outputDir)
+    #     self.resp_curve_1d(outputDir)
+    # self.resp_curve_2d(outputDir)
 
     def set_lengthscale(self, l, which = None):
         """
