@@ -1,7 +1,8 @@
 *.Rproj
 *.pyc
 .Rproj.user
+*.Rhistory
 
-1_guisane/dat
-1_guisane/res
-1_guisane/img
+*/dat
+*/res
+*/img

@@ -66,6 +66,10 @@ phDis <- cophenetic(alps$phylogeny)
 phDis_sc <- phDis / max(phDis)
 phSor <- sorensen(alps$siteGenus[rows,], phDis_sc)
 phMPD <- mpd(alps$siteGenus[rows,], dis=phDis)
+phSor_m <- melt(phSor,varnames=c('site1', 'site2'), value.name = 'p_sor')
+phMPD_m <- melt(phMPD,varnames=c('site1', 'site2'), value.name = 'p_mpd')
+phBeta <- merge(funcBeta, phSor_m, all.x=TRUE)
+phBeta <- merge(phBeta, phMPD_m, all.x=TRUE)
 
 
 # now try individual traits
@@ -74,17 +78,20 @@ trIndSor <- lapply(colnames(trMat), function(tr) {
 	tdis <- as.matrix(dist(tdat))
 	tdis <- tdis/max(tdis)
 	tsor <- sorensen(alps$siteSpecies[rows,], tdis)
-	tmpd <- mpd(alps$siteSpecies[rows,], tdis)
+	tmpd <- mpd(alps$siteSpecies[rows,], dis=tdis)
 	tsor <- melt(tsor,varnames=c('site1', 'site2'), value.name = paste0(tr,'_sor'))
 	merge(tsor, melt(tmpd,varnames=c('site1', 'site2'), value.name = paste0(tr,'_mpd')))
 })
-trIndSor
+trIndSor <- Reduce(merge, trIndSor)
+betaDiv <- merge(trIndSor, phBeta, all.y=TRUE)
+saveRDS(betaDiv, "3_alps/dat/betaDiv.rds")
+write.csv(betaDiv, "3_alps/dat/betaDiv.csv", row.names = FALSE)
 
 ##### TO TRY
 # √ all traits (drop repro height) - we have 1054 species if we do this
-# try log transforming sla, height, maybe seed mass (all quite skewed)
+# √ try log transforming sla, height, maybe seed mass (all quite skewed)
 # √ multiple site sets, just to make sure this one isn't weird
 # try adding soil data (maybe do env dist + soil dist separately)
 #√√√√ fix my dissimilarity metric - it's busted right now; check sorensen_pd and try to fix it
-# phylo (obvs)
+# √ phylo (obvs)
 
