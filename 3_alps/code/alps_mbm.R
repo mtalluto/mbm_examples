@@ -1,3 +1,3 @@
-taxBeta <- read.csv('3_alps/dat/tax-beta.csv')
+taxBeta <- readRDS("3_alps/dat/betaDiv.rds")
 
 taxMod <- mbm(taxBeta[,4:8], taxBeta$sor)

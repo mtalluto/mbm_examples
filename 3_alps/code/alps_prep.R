@@ -28,16 +28,22 @@ maxN <- ceiling(100 / (length(elevBands) - 1)) # 100 is the approx target final 
 # choose rows
 rows <- unlist(mapply(get_rows, minElev=elevBands[1:(length(elevBands)-1)], maxElev=elevBands[2:length(elevBands)], 
 											MoreArgs=list(elev=alps$siteEnv[,'elev'], n=maxN, mask=keep)))
-
+rows.valid <- sample((1:nrow(alps$siteEnv))[-rows], length(rows))
+rows.predict <- (1:nrow(alps$siteEnv))[-c(rows, rows.valid)]
 
 # covariate prep
 # include seaonality (bio4), min temp of coldest month (6), annual temp range (7), and precip seasonality(15)
 envVars <- c('bio_4', 'bio_6', 'bio_7', 'bio_15')
 envMat <- env_dissim(alps$siteEnv[rows,envVars])
+envMat.v <- env_dissim(alps$siteEnv[rows.valid,envVars])
+envMat.p <- env_dissim(alps$siteEnv[rows.predict,envVars])
 
 spBeta <- sorensen(alps$siteSpecies[rows,])
 spBeta <- melt(spBeta,varnames=c('site1', 'site2'), value.name = 'sor')
 taxBeta <- merge(spBeta, envMat)
+spBeta.v <- sorensen(alps$siteSpecies[rows.valid,])
+spBeta.v <- melt(spBeta.v,varnames=c('site1', 'site2'), value.name = 'sor')
+taxBeta.v <- merge(spBeta.v, envMat.v)
 
 
 # functional MPD and dissimilarity
@@ -55,11 +61,20 @@ trDis <- trDis / max(trDis)
 trSor <- sorensen(alps$siteSpecies[rows,], trDis) ## this is still unacceptably slow, AND it is yielding negative values unless the distances are scaled to be between 0 and 1
 trMPD <- mpd(alps$siteSpecies[rows,], dis=trDis)
 
+trSor.v <- sorensen(alps$siteSpecies[rows.valid,], trDis) ## this is still unacceptably slow, AND it is yielding negative values unless the distances are scaled to be between 0 and 1
+trMPD.v <- mpd(alps$siteSpecies[rows.valid,], dis=trDis)
+
+
 ## now melt and merge with environment
 trSor_m <- melt(trSor,varnames=c('site1', 'site2'), value.name = 'f_sor')
 trMPD_m <- melt(trMPD,varnames=c('site1', 'site2'), value.name = 'f_mpd')
 funcBeta <- merge(taxBeta, trSor_m, all.x=TRUE)
 funcBeta <- merge(funcBeta, trMPD_m, all.x=TRUE)
+
+trSor_m.v <- melt(trSor.v,varnames=c('site1', 'site2'), value.name = 'f_sor')
+trMPD_m.v <- melt(trMPD.v,varnames=c('site1', 'site2'), value.name = 'f_mpd')
+funcBeta.v <- merge(taxBeta.v, trSor_m.v, all.x=TRUE)
+funcBeta.v <- merge(funcBeta.v, trMPD_m.v, all.x=TRUE)
 
 ## now phylo
 phDis <- cophenetic(alps$phylogeny)
@@ -71,21 +86,35 @@ phMPD_m <- melt(phMPD,varnames=c('site1', 'site2'), value.name = 'p_mpd')
 phBeta <- merge(funcBeta, phSor_m, all.x=TRUE)
 phBeta <- merge(phBeta, phMPD_m, all.x=TRUE)
 
+phSor.v <- sorensen(alps$siteGenus[rows.valid,], phDis_sc)
+phMPD.v <- mpd(alps$siteGenus[rows.valid,], dis=phDis)
+phSor_m.v <- melt(phSor.v,varnames=c('site1', 'site2'), value.name = 'p_sor')
+phMPD_m.v <- melt(phMPD.v,varnames=c('site1', 'site2'), value.name = 'p_mpd')
+phBeta.v <- merge(funcBeta.v, phSor_m.v, all.x=TRUE)
+phBeta.v <- merge(phBeta.v, phMPD_m.v, all.x=TRUE)
 
 # now try individual traits
-trIndSor <- lapply(colnames(trMat), function(tr) {
-	tdat <- trMat[,tr,drop=FALSE]
+do.single.trait <- function(tr, trM, comm)
+{
+	tdat <- trM[,tr,drop=FALSE]
 	tdis <- as.matrix(dist(tdat))
 	tdis <- tdis/max(tdis)
-	tsor <- sorensen(alps$siteSpecies[rows,], tdis)
-	tmpd <- mpd(alps$siteSpecies[rows,], dis=tdis)
+	tsor <- sorensen(comm, tdis)
+	tmpd <- mpd(comm, dis=tdis)
 	tsor <- melt(tsor,varnames=c('site1', 'site2'), value.name = paste0(tr,'_sor'))
 	merge(tsor, melt(tmpd,varnames=c('site1', 'site2'), value.name = paste0(tr,'_mpd')))
-})
-trIndSor <- Reduce(merge, trIndSor)
+}
+trIndSor <- Reduce(merge, lapply(colnames(trMat), function(tr) do.single.trait(tr, trMat, alps$siteSpecies[rows,])))
+trIndSor.v <- Reduce(merge, lapply(colnames(trMat), function(tr) do.single.trait(tr, trMat, alps$siteSpecies[rows.valid,])))
+
 betaDiv <- merge(trIndSor, phBeta, all.y=TRUE)
+betaDiv.v <- merge(trIndSor.v, phBeta.v, all.y=TRUE)
+
 saveRDS(betaDiv, "3_alps/dat/betaDiv.rds")
 write.csv(betaDiv, "3_alps/dat/betaDiv.csv", row.names = FALSE)
+saveRDS(betaDiv.v, "3_alps/dat/betaDiv_valid.rds")
+write.csv(betaDiv.v, "3_alps/dat/betaDiv_valid.csv", row.names = FALSE)
+write.csv(envMat.p, "3_alps/dat/betaDiv_predict.csv", row.names = FALSE)
 
 ##### TO TRY
 # √ all traits (drop repro height) - we have 1054 species if we do this
