@@ -4,13 +4,16 @@ import errno
 import GPy
 
 class MBM(object):
-    def __init__(self, linkFunction = None, likelihoodClass = None):
+    def __init__(self, linkFunction = None, likelihoodClass = None, linearMeanFunction = False, meanFunctionSlope = 0, distanceIndex=0):
         self.link = GPy.likelihoods.link_functions.Identity() if linkFunction is None else linkFunction
         self.set_likelihood(likelihoodClass)
         self.priors = dict()
         self.model = None
         self.sample = False
         self.validX = None
+        self.linearMeanFunction = linearMeanFunction
+        self.meanFunctionSlope = meanFunctionSlope
+        self.distanceIndex = distanceIndex
 
     # def add_data(self, dat, xvars=None, yvar=None, datType='fit'):
     def add_data(self, dat, xvars=None, yvar=None):
@@ -67,7 +70,11 @@ class MBM(object):
             self.model.Gaussian_noise.variance.set_prior(self.priors['Gaussian_noise.variance'])
 
     def fit_model(self, optimize=True):
-        self.model = GPy.core.GP(X=self.X, Y=self.Y, likelihood=self.likelihood, \
+        if self.linearMeanFunction:
+            yy = self.Y - (self.meanFunctionSlope * self.X[:,self.distanceIndex,None])
+        else:
+            yy = self.Y
+        self.model = GPy.core.GP(X=self.X, Y=yy, likelihood=self.likelihood, \
                 inference_method=self.inference, kernel=self.kern)
         self.set_priors()
         if optimize:
@@ -137,6 +144,8 @@ class MBM(object):
             quants = np.transpose(np.percentile(samples, pcts, axis=1))
         else:
             mean, variance = self.model.predict_noiseless(newX)
+            if self.linearMeanFunction:
+                mean = mean + (self.meanFunctionSlope * newX[:,self.distanceIndex, None])
             sd = np.sqrt(variance)
             lower = mean - 1.96 * sd
             upper = mean + 1.96 * sd

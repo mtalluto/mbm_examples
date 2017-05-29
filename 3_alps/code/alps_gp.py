@@ -31,8 +31,8 @@ import GPy
 import mbmtools as mbm
 
 xVars = ['distance', 'bio_4', 'bio_6', 'bio_7', 'bio_15']
-mods = ['LDMC_sor', 'LDMC_mpd', 'PL_VEG_H_sor', 'PL_VEG_H_mpd', 'SEEDM_sor', 'SEEDM_mpd', 'SLA_sor',
-    'SLA_mpd', 'sor', 'f_sor', 'f_mpd', 'p_sor', 'p_mpd']
+# mods = ['sor', 'f_mpd', 'p_sor', 'p_mpd']
+mods = ['sor']
 file = 'dat/betaDiv.csv'
 validFile = 'dat/betaDiv_valid.csv'
 # predictFile = 'dat/betaDiv_predict.csv'
@@ -46,8 +46,13 @@ for m in mods:
     rdir = 'res/' + m
     if not os.path.isdir(rdir):
         os.makedirs(rdir)
-    link = GPy.likelihoods.link_functions.Log() if re.match('mpd', m) else GPy.likelihoods.link_functions.Probit() 
-    mod = mbm.MBM(link)
+    if m == 'sor':
+        link = GPy.likelihoods.link_functions.Probit()
+        mf = True
+    else:
+        link = GPy.likelihoods.link_functions.Log()
+        mf = False
+    mod = mbm.MBM(link, linearMeanFunction = mf, meanFunctionSlope = 0.25)
     mod.add_data(dat, xVars, m)
     mod.add_prior(allPriors = GPy.priors.Gamma.from_EV(1.,3.))
     mod.fit_model()
