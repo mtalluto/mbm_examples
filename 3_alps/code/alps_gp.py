@@ -54,10 +54,10 @@ for m in mods:
     mod.save_params(rdir)
     print "   predicting to " + str(np.shape(mod.X)[0]) + " datapoints"
     datPredict = mod.predict(header=True)
-    np.savetxt(rdir + "/dat_predict.csv", datPredict[1], header=datPredict[0] )
+    np.savetxt(rdir + "/dat_predict.csv", datPredict[1], header=datPredict[0], delimiter=',', comments='')
     print "   predicting to " + str(np.shape(validDat)[0]) + " validation points"
     validPredict = mod.predict(newX=validDat, header=True)
-    np.savetxt(rdir + "/valid_predict.csv", validPredict[1], header=validPredict[0] )
+    np.savetxt(rdir + "/valid_predict.csv", validPredict[1], header=validPredict[0], delimiter=',', comments='')
     # print "   predicting to " + str(np.shape(predictDat)[0]) + " other points"
     # predict = mod.predict(newX = predictDat, header=True)
     # np.savetxt(rdir + "/predict.csv", predict[1], header=predict[0] )
