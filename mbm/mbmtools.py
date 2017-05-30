@@ -2,6 +2,7 @@ import os
 import numpy as np
 import errno
 import GPy
+import scipy.stats
 
 class MBM(object):
     def __init__(self, linkFunction = None, likelihoodClass = None, linearMeanFunction = False, meanFunctionSlope = 0, distanceIndex=0):
@@ -11,6 +12,8 @@ class MBM(object):
         self.model = None
         self.sample = False
         self.validX = None
+        self.y_transform = None
+        self.y_rev_transforma = None
         self.linearMeanFunction = linearMeanFunction
         self.meanFunctionSlope = meanFunctionSlope
         self.distanceIndex = distanceIndex
@@ -61,6 +64,8 @@ class MBM(object):
             self.priors["Gaussian_noise.variance"] = noiseVariance
 
     def set_priors(self):
+        if self.model is not None:
+            self.model.update_model(False)
         if 'variance' in self.priors.keys():
             self.kern.variance.set_prior(self.priors['variance'])
         if 'lengthscale' in self.priors.keys():
@@ -68,14 +73,32 @@ class MBM(object):
         if 'Gaussian_noise.variance' in self.priors.keys() and self.model is not None and \
                 isinstance(self.model.likelihood, GPy.likelihoods.Gaussian):
             self.model.Gaussian_noise.variance.set_prior(self.priors['Gaussian_noise.variance'])
+        if self.model is not None:
+            self.model.update_model(True)
 
-    def fit_model(self, optimize=True):
+    def fit_model(self, optimize=True, initialize = True):
         if self.linearMeanFunction:
-            yy = self.Y - (self.meanFunctionSlope * self.X[:,self.distanceIndex,None])
+            if np.amax(self.Y) == 1:
+                eps = -0.01
+            elif np.amin(self.Y) == 0:
+                eps = 0.01
+            else:
+                eps = 0
+            self.y_transform = lambda y: scipy.stats.norm.ppf(y + eps)
+            self.y_rev_transform = lambda phi: scipy.stats.norm.cdf(phi) - eps
+            yy = self.y_transform(self.Y)
+            # yy = self.Y - (self.meanFunctionSlope * self.X[:,self.distanceIndex,None])
+            mf = GPy.core.Mapping(np.shape(self.X)[1],1)
+            mf.f = lambda x: x[0]*self.meanFunctionSlope
+            mf.update_gradients = lambda a,b: 0
+            mf.gradients_X = lambda a,b: 0
+            self.link = GPy.likelihoods.link_functions.Identity()
+            self.set_likelihood(None) # reset to use Gaussian likelihood
+            self.model = GPy.core.GP(X=self.X, Y=yy, likelihood=self.likelihood, \
+                inference_method=self.inference, kernel=self.kern, initialize = initialize, mean_function=mf)
         else:
-            yy = self.Y
-        self.model = GPy.core.GP(X=self.X, Y=yy, likelihood=self.likelihood, \
-                inference_method=self.inference, kernel=self.kern)
+            self.model = GPy.core.GP(X=self.X, Y=self.Y, likelihood=self.likelihood, \
+                inference_method=self.inference, kernel=self.kern, initialize = initialize)
         self.set_priors()
         if optimize:
             self.model.optimize()
@@ -87,15 +110,15 @@ class MBM(object):
     #     self.resp_curve_1d(outputDir)
     # self.resp_curve_2d(outputDir)
 
-    def set_lengthscale(self, l, which = None):
-        """
-        Change the lengthscale of the model; does NOT recondition the model
-        Use model.fit_model(optimize=False) to recondition with the new lengthscale
-        """
-        if which is not None:
-            self.model.kern.lengthscale[which] = l
-        else:
-            self.model.kern.lengthscale[i] = l[i]
+    # def set_lengthscale(self, l, which = None):
+    #     """
+    #     Change the lengthscale of the model; does NOT recondition the model
+    #     Use model.fit_model(optimize=False) to recondition with the new lengthscale
+    #     """
+    #     if which is not None:
+    #         self.model.kern.lengthscale[which] = l
+    #     else:
+    #         self.model.kern.lengthscale[i] = l[i]
 
     def save_params(self, outputDir):
         """
@@ -103,9 +126,13 @@ class MBM(object):
         """
         np.savetxt(outputDir + '/params.csv', self.model.param_array, delimiter=',')
 
-    def load_params(self, params):
-        # to implement
-        pass
+    def load_params(self, param_file):
+        self.fit_model(optimize = False, initialize = False)
+        self.model.update_model(False) # do not call the underlying expensive algebra on load
+        self.model.initialize_parameter() # Initialize the parameters (connect the parameters up)
+        self.model[:] = np.loadtxt(param_file) # Load the parameters
+        self.model.update_model(True) # Call the algebra only once
+
 
     # def predict_to_data(self, outputDir):
     #     self.predict_and_save(self.X, outputDir + '/datPredict.csv')
@@ -142,10 +169,12 @@ class MBM(object):
             mean = np.reshape(np.mean(samples, axis=1), (-1,1))
             sd = np.sqrt(np.reshape(np.var(samples, axis=1), (-1,1)))
             quants = np.transpose(np.percentile(samples, pcts, axis=1))
+            if self.y_rev_transform is not None:
+                raise ValueError("I don't know what to do with a y transformation when sampling")
         else:
             mean, variance = self.model.predict_noiseless(newX)
-            if self.linearMeanFunction:
-                mean = mean + (self.meanFunctionSlope * newX[:,self.distanceIndex, None])
+            if self.y_rev_transform is not None:
+                mean = self.y_rev_transform(mean)
             sd = np.sqrt(variance)
             lower = mean - 1.96 * sd
             upper = mean + 1.96 * sd
