@@ -157,13 +157,13 @@ class MBM(object):
                are a copy of the newX values
                if header is true, a tuple; first item is the header string, second is the numpy array
         """
-        if newX is None:
-            newX = self.X
-        else:
-            newshp = np.shape(newX)
-            origshp = np.shape(self.X)
-            if len(newshp) != len(origshp) or newshp[1] != origshp[1]:
-                newX = prep_x(newX, self.xvars)
+        # if newX is None:
+        #     newX = self.X
+        # else:
+        #     newshp = np.shape(newX)
+        #     origshp = np.shape(self.X)
+        #     if len(newshp) != len(origshp) or newshp[1] != origshp[1]:
+        #         newX = prep_x(newX, self.xvars)
         if self.sample:
             samples = self.model.posterior_samples_f(newX, nsamp)
             mean = np.reshape(np.mean(samples, axis=1), (-1,1))
@@ -172,7 +172,7 @@ class MBM(object):
             if self.y_rev_transform is not None:
                 raise ValueError("I don't know what to do with a y transformation when sampling")
         else:
-            mean, variance = self.model.predict_noiseless(newX)
+            # mean, variance = self.model.predict_noiseless(newX)
             if self.y_rev_transform is not None:
                 mean = self.y_rev_transform(mean)
             sd = np.sqrt(variance)
@@ -288,10 +288,10 @@ class MBM(object):
 #     return res
 
 
-def prep_x(arr, xvars):
-    """
-    sets up x array for GPy by pulling out xvars from arr and reshaping appropriately
-    """
-    result = arr[xvars]
-    return result.view(np.float).reshape(result.shape + (-1,))
+# def prep_x(arr, xvars):
+#     """
+#     sets up x array for GPy by pulling out xvars from arr and reshaping appropriately
+#     """
+#     result = arr[xvars]
+#     return result.view(np.float).reshape(result.shape + (-1,))
 

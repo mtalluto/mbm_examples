@@ -9,21 +9,21 @@ import warnings
 # os.chdir("..")
 
 # gpy prints lots of warnings during optimization; normally it is safe to ignore these
-if '--warn' in sys.argv:
-    warn = True
-    warnings.simplefilter('default')
-else:
-    warn = False
-    warnings.filterwarnings("ignore")
+# if '--warn' in sys.argv:
+#     warn = True
+#     warnings.simplefilter('default')
+# else:
+#     warn = False
+#     warnings.filterwarnings("ignore")
 
 
 # find where to look got mbmtools
-try:
-    p = re.compile('--dir=(.+)')
-    mbmdir = filter(None, [p.match(x) for x in sys.argv])[0].group(1)
-    sys.path.append(mbmdir)
-except IndexError:
-    mbmdir = None
+# try:
+#     p = re.compile('--dir=(.+)')
+#     mbmdir = filter(None, [p.match(x) for x in sys.argv])[0].group(1)
+#     sys.path.append(mbmdir)
+# except IndexError:
+#     mbmdir = None
 
 # get prediction file(s)
 try:
@@ -38,14 +38,14 @@ except IndexError:
 import GPy
 import mbmtools as mbm
 
-xVars = ['distance', 'bio_4', 'bio_6', 'bio_7', 'bio_15']
-# mods = ['sor', 'f_mpd', 'p_sor', 'p_mpd']
-mods = ['sor']
-file = 'dat/betaDiv.csv'
-validFile = 'dat/betaDiv_valid.csv'
-dat = np.genfromtxt(file, delimiter=',', skip_header=0, names=True, dtype=float)
-validDat = np.genfromtxt(validFile, delimiter=',', skip_header=0, names=True, dtype=float)
-predictDatSets = [np.genfromtxt(f, delimiter=',', skip_header=0, names=True, dtype=float) for f in predictFiles]
+# xVars = ['distance', 'bio_4', 'bio_6', 'bio_7', 'bio_15']
+# # mods = ['sor', 'f_mpd', 'p_sor', 'p_mpd']
+# mods = ['sor']
+# file = 'dat/betaDiv.csv'
+# validFile = 'dat/betaDiv_valid.csv'
+# dat = np.genfromtxt(file, delimiter=',', skip_header=0, names=True, dtype=float)
+# validDat = np.genfromtxt(validFile, delimiter=',', skip_header=0, names=True, dtype=float)
+# predictDatSets = [np.genfromtxt(f, delimiter=',', skip_header=0, names=True, dtype=float) for f in predictFiles]
 
 for m in mods:
     print "starting model " + m
