@@ -8,7 +8,7 @@ class MBM(object):
     def __init__(self, linkFunction = None, likelihoodClass = None, linearMeanFunction = False, meanFunctionSlope = 0, distanceIndex=0):
         # self.link = GPy.likelihoods.link_functions.Identity() if linkFunction is None else linkFunction
         # self.set_likelihood(likelihoodClass)
-        self.priors = dict()
+        # self.priors = dict()
         # self.model = None
         self.sample = False
         # self.validX = None
@@ -43,38 +43,38 @@ class MBM(object):
         #     if isinstance(self.link, GPy.likelihoods.link_functions.Identity) and \
         #             isinstance(self.likelihood, GPy.likelihoods.Gaussian):
         #         self.inference = GPy.inference.latent_function_inference.ExactGaussianInference()
-            else:
-                self.inference = GPy.inference.latent_function_inference.Laplace()
+            # else:
+            #     self.inference = GPy.inference.latent_function_inference.Laplace()
         # else:
         #     self.inference = inference
 
-    def set_y(self, yy):
-        if len(np.shape(yy)) != 2:
-            yy = np.reshape(yy, (-1, 1))
-        self.Y = yy
+    # def set_y(self, yy):
+    #     if len(np.shape(yy)) != 2:
+    #         yy = np.reshape(yy, (-1, 1))
+    #     self.Y = yy
 
-    def add_prior(self, variance = None, lengthscale = None, noiseVariance = None, allPriors = None):
-        if allPriors is not None:
-            variance = lengthscale = noiseVariance = allPriors
-        if variance is not None:
-            self.priors["variance"] = variance
-        if lengthscale is not None:
-            self.priors["lengthscale"] = lengthscale
-        if noiseVariance is not None:
-            self.priors["Gaussian_noise.variance"] = noiseVariance
+    # def add_prior(self, variance = None, lengthscale = None, noiseVariance = None, allPriors = None):
+    #     if allPriors is not None:
+    #         variance = lengthscale = noiseVariance = allPriors
+    #     if variance is not None:
+    #         self.priors["variance"] = variance
+    #     if lengthscale is not None:
+    #         self.priors["lengthscale"] = lengthscale
+    #     if noiseVariance is not None:
+    #         self.priors["Gaussian_noise.variance"] = noiseVariance
 
-    def set_priors(self):
-        if self.model is not None:
-            self.model.update_model(False)
-        if 'variance' in self.priors.keys():
-            self.kern.variance.set_prior(self.priors['variance'])
-        if 'lengthscale' in self.priors.keys():
-            self.kern.lengthscale.set_prior(self.priors['lengthscale'])
-        if 'Gaussian_noise.variance' in self.priors.keys() and self.model is not None and \
-                isinstance(self.model.likelihood, GPy.likelihoods.Gaussian):
-            self.model.Gaussian_noise.variance.set_prior(self.priors['Gaussian_noise.variance'])
-        if self.model is not None:
-            self.model.update_model(True)
+    # def set_priors(self):
+    #     if self.model is not None:
+    #         self.model.update_model(False)
+    #     # if 'variance' in self.priors.keys():
+    #     #     self.kern.variance.set_prior(self.priors['variance'])
+    #     # if 'lengthscale' in self.priors.keys():
+    #         # self.kern.lengthscale.set_prior(self.priors['lengthscale'])
+    #     if 'Gaussian_noise.variance' in self.priors.keys() and self.model is not None and \
+    #             isinstance(self.model.likelihood, GPy.likelihoods.Gaussian):
+    #         self.model.Gaussian_noise.variance.set_prior(self.priors['Gaussian_noise.variance'])
+    #     if self.model is not None:
+    #         self.model.update_model(True)
 
     def fit_model(self, optimize=True, initialize = True):
         if self.linearMeanFunction:
@@ -99,7 +99,7 @@ class MBM(object):
         # else:
         #     self.model = GPy.core.GP(X=self.X, Y=self.Y, likelihood=self.likelihood, \
         #         inference_method=self.inference, kernel=self.kern, initialize = initialize)
-        self.set_priors()
+        # self.set_priors()
         # if optimize:
         #     self.model.optimize()
 
@@ -120,11 +120,11 @@ class MBM(object):
     #     else:
     #         self.model.kern.lengthscale[i] = l[i]
 
-    def save_params(self, outputDir):
-        """
-        Save model parameter array to the specified directory
-        """
-        np.savetxt(outputDir + '/params.csv', self.model.param_array, delimiter=',')
+    # def save_params(self, outputDir):
+    #     """
+    #     Save model parameter array to the specified directory
+    #     """
+    #     np.savetxt(outputDir + '/params.csv', self.model.param_array, delimiter=',')
 
     def load_params(self, param_file):
         self.fit_model(optimize = False, initialize = False)
@@ -175,14 +175,14 @@ class MBM(object):
             # mean, variance = self.model.predict_noiseless(newX)
             if self.y_rev_transform is not None:
                 mean = self.y_rev_transform(mean)
-            sd = np.sqrt(variance)
-            lower = mean - 1.96 * sd
-            upper = mean + 1.96 * sd
+            # sd = np.sqrt(variance)
+            # lower = mean - 1.96 * sd
+            # upper = mean + 1.96 * sd
             quants = np.concatenate([lower, upper], axis=1)
         res = np.concatenate((newX, mean, sd, quants), axis=1)
-        if header:
-            res = (','.join(self.xvars) + ',' + ','.join(['mean', 'sd', 'lower', 'upper']), res)
-        return res
+        # if header:
+        #     res = (','.join(self.xvars) + ',' + ','.join(['mean', 'sd', 'lower', 'upper']), res)
+        # return res
 
 
 

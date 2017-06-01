@@ -26,12 +26,12 @@ import warnings
 #     mbmdir = None
 
 # get prediction file(s)
-try:
-    p = re.compile('--predict=(.+)')
-    predictFiles = [y.group(1) for y in filter(None, [p.match(x) for x in sys.argv])]
-except IndexError:
-    print("Usage: " + sys.argv[0] + " --predict=predictFile1.csv --predict=predictFile2.csv ...")
-    sys.exit(1)
+# try:
+#     p = re.compile('--predict=(.+)')
+#     predictFiles = [y.group(1) for y in filter(None, [p.match(x) for x in sys.argv])]
+# except IndexError:
+#     print("Usage: " + sys.argv[0] + " --predict=predictFile1.csv --predict=predictFile2.csv ...")
+#     sys.exit(1)
 
 
 
@@ -53,15 +53,15 @@ for m in mods:
     rdir = 'res/' + m
     if not os.path.isdir(rdir):
         os.makedirs(rdir)
-    if m == 'sor':
-        link = GPy.likelihoods.link_functions.Probit()
-        mf = True
-    else:
-        link = GPy.likelihoods.link_functions.Log()
-        mf = False
-    mod = mbm.MBM(link, linearMeanFunction = mf, meanFunctionSlope = 0.25)
-    mod.add_data(dat, xVars, m)
-    mod.add_prior(allPriors = GPy.priors.Gamma.from_EV(1.,3.))
+    # if m == 'sor':
+    #     link = GPy.likelihoods.link_functions.Probit()
+    #     mf = True
+    # else:
+    #     link = GPy.likelihoods.link_functions.Log()
+    #     mf = False
+    # mod = mbm.MBM(link, linearMeanFunction = mf, meanFunctionSlope = 0.25)
+    # mod.add_data(dat, xVars, m)
+    # mod.add_prior(allPriors = GPy.priors.Gamma.from_EV(1.,3.))
     mod.fit_model()
     mod.save_params(rdir)
     print "   predicting to " + str(np.shape(mod.X)[0]) + " datapoints"
@@ -71,11 +71,11 @@ for m in mods:
     validPredict = mod.predict(newX=validDat, header=True)
     np.savetxt(rdir + "/valid_predict.csv", validPredict[1], header=validPredict[0], delimiter=',', comments='')
     prCounter = 0
-    for p_dat in predictDatSets:
-        print "   predicting to " + str(np.shape(p_dat)[0]) + " other points"
-        predict = mod.predict(newX = p_dat, header=True)
-        np.savetxt(rdir + "/predict" + str(prCounter) + ".csv", predict[1], header=predict[0], delimiter=',', comments='')
-        prCounter += 1
+    # for p_dat in predictDatSets:
+    #     print "   predicting to " + str(np.shape(p_dat)[0]) + " other points"
+    #     predict = mod.predict(newX = p_dat, header=True)
+    #     np.savetxt(rdir + "/predict" + str(prCounter) + ".csv", predict[1], header=predict[0], delimiter=',', comments='')
+    #     prCounter += 1
 
     
 

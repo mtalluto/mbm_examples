@@ -47,37 +47,37 @@ taxBeta.v <- merge(spBeta.v, envMat.v)
 
 
 # functional MPD
-# trMat <- alps$spTrait
-# trMat <- trMat[,-2] # drop repro ht
-# trMat <- trMat[complete.cases(trMat),]
-# # try a transformed version as well
-# trMat_untransformed <- trMat
-# trMat[,'SLA'] <- log(trMat[,'SLA'])
-# trMat[,'SEEDM'] <- log(trMat[,'SEEDM'])
-# trMat[,'PL_VEG_H'] <- log(trMat[,'PL_VEG_H'])
-# trMat <- scale(trMat)
-# trDis <- as.matrix(dist(trMat))
-# trDis <- trDis / max(trDis)
-# trMPD <- mpd(alps$siteSpecies[rows,], dis=trDis)
-# trMPD.v <- mpd(alps$siteSpecies[rows.valid,], dis=trDis)
+trMat <- alps$spTrait
+trMat <- trMat[,-2] # drop repro ht
+trMat <- trMat[complete.cases(trMat),]
+# try a transformed version as well
+trMat_untransformed <- trMat
+trMat[,'SLA'] <- log(trMat[,'SLA'])
+trMat[,'SEEDM'] <- log(trMat[,'SEEDM'])
+trMat[,'PL_VEG_H'] <- log(trMat[,'PL_VEG_H'])
+trMat <- scale(trMat)
+trDis <- as.matrix(dist(trMat))
+trDis <- trDis / max(trDis)
+trMPD <- mpd(alps$siteSpecies[rows,], dis=trDis)
+trMPD.v <- mpd(alps$siteSpecies[rows.valid,], dis=trDis)
 
 
 ## now melt and merge with environment
-# trMPD_m <- melt(trMPD,varnames=c('site1', 'site2'), value.name = 'f_mpd')
-# funcBeta <- merge(taxBeta, trMPD_m, all.x=TRUE)
-#
-# trMPD_m.v <- melt(trMPD.v,varnames=c('site1', 'site2'), value.name = 'f_mpd')
-# funcBeta.v <- merge(taxBeta.v, trMPD_m.v, all.x=TRUE)
+trMPD_m <- melt(trMPD,varnames=c('site1', 'site2'), value.name = 'f_mpd')
+funcBeta <- merge(taxBeta, trMPD_m, all.x=TRUE)
+
+trMPD_m.v <- melt(trMPD.v,varnames=c('site1', 'site2'), value.name = 'f_mpd')
+funcBeta.v <- merge(taxBeta.v, trMPD_m.v, all.x=TRUE)
 
 ## now phylo
-# phDis <- cophenetic(alps$phylogeny)
-# phMPD <- mpd(alps$siteGenus[rows,], dis=phDis)
-# phMPD_m <- melt(phMPD,varnames=c('site1', 'site2'), value.name = 'p_mpd')
-# betaDiv <- merge(funcBeta, phMPD_m, all.x=TRUE)
+phDis <- cophenetic(alps$phylogeny)
+phMPD <- mpd(alps$siteGenus[rows,], dis=phDis)
+phMPD_m <- melt(phMPD,varnames=c('site1', 'site2'), value.name = 'p_mpd')
+betaDiv <- merge(funcBeta, phMPD_m, all.x=TRUE)
 #
-# phMPD.v <- mpd(alps$siteGenus[rows.valid,], dis=phDis)
-# phMPD_m.v <- melt(phMPD.v,varnames=c('site1', 'site2'), value.name = 'p_mpd')
-# betaDiv.v <- merge(funcBeta.v, phMPD_m.v, all.x=TRUE)
+phMPD.v <- mpd(alps$siteGenus[rows.valid,], dis=phDis)
+phMPD_m.v <- melt(phMPD.v,varnames=c('site1', 'site2'), value.name = 'p_mpd')
+betaDiv.v <- merge(funcBeta.v, phMPD_m.v, all.x=TRUE)
 
 # make a response curve dataset for prediction
 rcLim <- range(betaDiv$distance)

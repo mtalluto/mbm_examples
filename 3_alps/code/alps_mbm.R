@@ -35,6 +35,7 @@ envVars <- c('bio_4', 'bio_6', 'bio_7', 'bio_15')
 envMat <- as.matrix(alps$siteEnv[rows,envVars])
 taxBeta <- sorensen(alps$siteSpecies[rows,])
 
-# test prediction
-prX <- list(dat1=envMat, dat2=envMat)
-model <- mbm(taxBeta, envMat, predictX = prX)
+# make a response curve dataset for prediction
+rcX <- data.frame(distance = seq(0, 7, length.out = 200))
+
+model <- mbm(taxBeta, envMat)
