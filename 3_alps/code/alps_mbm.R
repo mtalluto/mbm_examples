@@ -35,4 +35,6 @@ envVars <- c('bio_4', 'bio_6', 'bio_7', 'bio_15')
 envMat <- as.matrix(alps$siteEnv[rows,envVars])
 taxBeta <- sorensen(alps$siteSpecies[rows,])
 
-model <- mbm(taxBeta, envMat)
+# test prediction
+prX <- list(dat1=envMat, dat2=envMat)
+model <- mbm(taxBeta, envMat, predictX = prX)

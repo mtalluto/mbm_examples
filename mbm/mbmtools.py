@@ -6,47 +6,47 @@ import scipy.stats
 
 class MBM(object):
     def __init__(self, linkFunction = None, likelihoodClass = None, linearMeanFunction = False, meanFunctionSlope = 0, distanceIndex=0):
-        self.link = GPy.likelihoods.link_functions.Identity() if linkFunction is None else linkFunction
-        self.set_likelihood(likelihoodClass)
+        # self.link = GPy.likelihoods.link_functions.Identity() if linkFunction is None else linkFunction
+        # self.set_likelihood(likelihoodClass)
         self.priors = dict()
-        self.model = None
+        # self.model = None
         self.sample = False
-        self.validX = None
-        self.y_transform = None
-        self.y_rev_transforma = None
+        # self.validX = None
+        # self.y_transform = None
+        # self.y_rev_transforma = None
         self.linearMeanFunction = linearMeanFunction
         self.meanFunctionSlope = meanFunctionSlope
         self.distanceIndex = distanceIndex
 
     # def add_data(self, dat, xvars=None, yvar=None, datType='fit'):
-    def add_data(self, dat, xvars=None, yvar=None):
-        if xvars is not None:
-            self.xvars = xvars
-        if yvar is not None:
-            self.yvar = yvar
+    # def add_data(self, dat, xvars=None, yvar=None):
+    #     if xvars is not None:
+    #         self.xvars = xvars
+    #     if yvar is not None:
+    #         self.yvar = yvar
 
-        # if datType == 'fit':
-        self.X = prep_x(dat, self.xvars)
-        self.set_y(dat[self.yvar])
-        self.kern = GPy.kern.RBF(input_dim=np.shape(self.X)[1], ARD=True)
+    #     # if datType == 'fit':
+    #     self.X = prep_x(dat, self.xvars)
+    #     self.set_y(dat[self.yvar])
+        # self.kern = GPy.kern.RBF(input_dim=np.shape(self.X)[1], ARD=True)
         # elif datType == 'validation':
         #     self.validX = prep_x(dat, self.xvars)
         # else:
         #     raise ValueError("datType must be one of 'fit' or 'validation'")
 
-    def set_likelihood(self, likelihoodClass, inference = None):
-        if likelihoodClass is None:
-            likelihoodClass = GPy.likelihoods.Gaussian
-        self.likelihood = likelihoodClass(gp_link = self.link)
+    # def set_likelihood(self, likelihoodClass, inference = None):
+    #     if likelihoodClass is None:
+    #         likelihoodClass = GPy.likelihoods.Gaussian
+    #     self.likelihood = likelihoodClass(gp_link = self.link)
 
-        if inference is None:
-            if isinstance(self.link, GPy.likelihoods.link_functions.Identity) and \
-                    isinstance(self.likelihood, GPy.likelihoods.Gaussian):
-                self.inference = GPy.inference.latent_function_inference.ExactGaussianInference()
+        # if inference is None:
+        #     if isinstance(self.link, GPy.likelihoods.link_functions.Identity) and \
+        #             isinstance(self.likelihood, GPy.likelihoods.Gaussian):
+        #         self.inference = GPy.inference.latent_function_inference.ExactGaussianInference()
             else:
                 self.inference = GPy.inference.latent_function_inference.Laplace()
-        else:
-            self.inference = inference
+        # else:
+        #     self.inference = inference
 
     def set_y(self, yy):
         if len(np.shape(yy)) != 2:
@@ -96,12 +96,12 @@ class MBM(object):
             self.set_likelihood(None) # reset to use Gaussian likelihood
             self.model = GPy.core.GP(X=self.X, Y=yy, likelihood=self.likelihood, \
                 inference_method=self.inference, kernel=self.kern, initialize = initialize, mean_function=mf)
-        else:
-            self.model = GPy.core.GP(X=self.X, Y=self.Y, likelihood=self.likelihood, \
-                inference_method=self.inference, kernel=self.kern, initialize = initialize)
+        # else:
+        #     self.model = GPy.core.GP(X=self.X, Y=self.Y, likelihood=self.likelihood, \
+        #         inference_method=self.inference, kernel=self.kern, initialize = initialize)
         self.set_priors()
-        if optimize:
-            self.model.optimize()
+        # if optimize:
+        #     self.model.optimize()
 
     # def predict_all(self, outputDir):
     #     make_dir(outputDir)
