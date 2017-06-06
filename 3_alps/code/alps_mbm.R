@@ -1,4 +1,4 @@
-devtools::install_local("~/work/projects/mbm/mbmtools")
+# devtools::install_local("~/work/projects/mbm/mbmtools")
 
 library("mbmtools")
 library("mbmdata")
@@ -38,4 +38,11 @@ taxBeta <- sorensen(alps$siteSpecies[rows,])
 # make a response curve dataset for prediction
 rcX <- data.frame(distance = seq(0, 7, length.out = 200))
 
-model <- mbm(taxBeta, envMat)
+model <- mbm(taxBeta, envMat, link='probit', response_curve = 'distance', y_name = 'taxo')
+
+rc(model, ylim=c(0,1), ylab="Sørensen Dissimilarity", xlab="Environmental Distance")
+
+
+
+
+

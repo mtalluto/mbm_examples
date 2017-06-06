@@ -24,25 +24,7 @@ for(m in mods) {
 }
 dev.off()
 
-# empirical_rc  <- function(samples, datapoints, wsize, wstep)
-# {
-# 	
-# }
 
-rc <- function(x, y, datX, datY, yInterval, ylab = 'Y', xlab = 'X', ...)
-{
-	yl <- range(c(y, datY))
-	xl <- range(c(x, datX))
-	col_line <- '#ce5336'
-	col_poly <- paste0(col_line, '66')
-	col_pt <- '#666666'
-	
-	plot(x, y, type='n', xlab = xlab, ylab = ylab, xlim=xl, ylim=yl, ...)
-	points(datX, datY, pch='x', cex=0.4, col=col_pt)
-	if(!missing(yInterval))
-		polygon(c(x, rev(x)), c(yInterval[,1], rev(yInterval[,2])), col=col_poly, border=NA)
-	lines(x, y, col=col_line)
-}
 
 # rcDat <- read.csv("3_alps/res/sor/predict0.csv")
 rcDat <- read.table("3_alps/res/sor/predict0.csv", h=TRUE)
