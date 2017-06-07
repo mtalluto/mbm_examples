@@ -29,7 +29,7 @@ rows <- unlist(mapply(get_rows, minElev=elevBands[1:(length(elevBands)-1)], maxE
 					  MoreArgs=list(elev=alps$siteEnv[,'elev'], n=maxN, mask=keep)))
 
 ## FOR TESTING: just 15 sites
-rows <- sample(rows, 15)
+# rows <- sample(rows, 15)
 
 # validation rows
 rows <- list(fit = rows, valid = sample((1:nrow(alps$siteEnv))[-rows], length(rows)))
@@ -57,17 +57,19 @@ phMPD <- lapply(rows, function(r) mpd(alps$siteGenus[r,], dis=phDis))
 
 
 taxModel <- mbm(taxBeta$fit, envMat$fit, predictX = envMat['valid'], link='probit', response_curve = 'distance', y_name = 'taxo')
+taxModel2 <- mbm(taxBeta$fit, envMat$fit, predictX = envMat['valid'], link='probit', response_curve = 'distance', y_name = 'taxo', 
+				 lengthscale = c(round(taxModel$params[2]*2, 1), rep(NA, ncol(envMat$fit))))
+taxModel0.5 <- mbm(taxBeta$fit, envMat$fit, predictX = envMat['valid'], link='probit', response_curve = 'distance', y_name = 'taxo', 
+			   lengthscale = c(round(taxModel$params[2]*0.2, 1), rep(NA, ncol(envMat$fit))))
 funModel <- mbm(trMPD$fit, envMat$fit, predictX = envMat['valid'], link='identity', response_curve = 'distance', y_name = 'functional')
 phyModel <- mbm(phMPD$fit, envMat$fit, predictX = envMat['valid'], link='identity', response_curve = 'distance', y_name = 'phylogenetic')
 saveRDS(taxModel, '3_alps/res/taxModel.rds')
+saveRDS(taxModel0.5, '3_alps/res/taxModel0_5.rds')
+saveRDS(taxModel2, '3_alps/res/taxModel2.rds')
 saveRDS(funModel, '3_alps/res/funModel.rds')
 saveRDS(phyModel, '3_alps/res/phyModel.rds')
 
 
-par(mfrow = c(3, 1))
-rc(taxModel, ylim=c(0,1), ylab="Sørensen Dissimilarity", xlab="Environmental Distance")
-rc(funModel, ylab = "Functional MPD", xlab = "Environmental Distance")
-rc(phyModel, ylab = "Phylogenetic MPD", xlab = "Environmental Distance")
 
 
 

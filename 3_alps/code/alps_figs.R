@@ -1,3 +1,23 @@
+## FIG 1 - look at response curves of 3 models
+# plot(taxModel, sterr=TRUE)
+# par(mfrow = c(3, 1))
+# rc(taxModel, ylim=c(0,1), ylab="Sørensen Dissimilarity", xlab="Environmental Distance")
+# rc(funModel, ylab = "Functional MPD", xlab = "Environmental Distance")
+# rc(phyModel, ylab = "Phylogenetic MPD", xlab = "Environmental Distance")
+
+
+
+
+####
+# fig 3: compare response curves
+rc(taxModel, col_line='#c6000b', col_polygon=NA, lwd=2, xlab="Environmental Distance", ylab="Sørensen Dissimilarity")
+rc(taxModel0.5, add=TRUE, col_line='#7851f7', col_polygon=NA, lwd=2)
+rc(taxModel2, add=TRUE, col_line='#00f6f9', col_polygon=NA, lwd=2)
+legend('bottomright', c(paste('l =', round(taxModel$params[2], 1)), paste('l =', round(taxModel2$params[2], 1)), 
+						paste('l =', round(taxModel0.5$params[2], 1))), lwd=1.5, col=c('#c6000b', '#00f6f9', '#7851f7'))
+
+
+
 mods <- list.dirs("3_alps/res", full.names=FALSE, recursive=FALSE)
 betaDiv <- read.csv("3_alps/dat/betaDiv.csv")
 betaDiv.v <- read.csv("3_alps/dat/betaDiv_valid.csv")
