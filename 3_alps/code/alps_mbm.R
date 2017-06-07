@@ -2,7 +2,7 @@
 
 library("mbmtools")
 library("mbmdata")
-# library("ape")
+library("ape")
 # library(reshape2)
 data(alps)
 
@@ -28,19 +28,51 @@ maxN <- ceiling(100 / (length(elevBands) - 1)) # 100 is the approx target final 
 rows <- unlist(mapply(get_rows, minElev=elevBands[1:(length(elevBands)-1)], maxElev=elevBands[2:length(elevBands)], 
 					  MoreArgs=list(elev=alps$siteEnv[,'elev'], n=maxN, mask=keep)))
 
-## FOR TESTING: just 10 sites
-rows <- rows[1:10]
+## FOR TESTING: just 15 sites
+rows <- sample(rows, 15)
+
+# validation rows
+rows <- list(fit = rows, valid = sample((1:nrow(alps$siteEnv))[-rows], length(rows)))
 
 envVars <- c('bio_4', 'bio_6', 'bio_7', 'bio_15')
-envMat <- as.matrix(alps$siteEnv[rows,envVars])
-taxBeta <- sorensen(alps$siteSpecies[rows,])
+envMat <- lapply(rows, function(r) as.matrix(alps$siteEnv[r,envVars]))
+taxBeta <- lapply(rows, function(r) sorensen(alps$siteSpecies[r,]))
 
-# make a response curve dataset for prediction
-rcX <- data.frame(distance = seq(0, 7, length.out = 200))
+# functional MPD
+trMat <- alps$spTrait
+trMat <- trMat[,-2] # drop repro ht
+trMat <- trMat[complete.cases(trMat),]
+trMat[,'SLA'] <- log(trMat[,'SLA'])
+trMat[,'SEEDM'] <- log(trMat[,'SEEDM'])
+trMat[,'PL_VEG_H'] <- log(trMat[,'PL_VEG_H'])
+# center/scale traits before computing distance, then scale distance between 0 and 1
+trMat <- scale(trMat)
+trDis <- as.matrix(dist(trMat))
+trDis <- trDis / max(trDis)
+trMPD <- lapply(rows, function(r) mpd(alps$siteSpecies[r,], dis=trDis))
 
-model <- mbm(taxBeta, envMat, link='probit', response_curve = 'distance', y_name = 'taxo')
+# phylo MPD
+phDis <- cophenetic(alps$phylogeny)
+phMPD <- lapply(rows, function(r) mpd(alps$siteGenus[r,], dis=phDis))
 
-rc(model, ylim=c(0,1), ylab="Sørensen Dissimilarity", xlab="Environmental Distance")
+
+taxModel <- mbm(taxBeta$fit, envMat$fit, predictX = envMat['valid'], link='probit', response_curve = 'distance', y_name = 'taxo')
+funModel <- mbm(trMPD$fit, envMat$fit, predictX = envMat['valid'], link='identity', response_curve = 'distance', y_name = 'functional')
+phyModel <- mbm(phMPD$fit, envMat$fit, predictX = envMat['valid'], link='identity', response_curve = 'distance', y_name = 'phylogenetic')
+saveRDS(taxModel, '3_alps/res/taxModel.rds')
+saveRDS(funModel, '3_alps/res/funModel.rds')
+saveRDS(phyModel, '3_alps/res/phyModel.rds')
+
+
+par(mfrow = c(3, 1))
+rc(taxModel, ylim=c(0,1), ylab="Sørensen Dissimilarity", xlab="Environmental Distance")
+rc(funModel, ylab = "Functional MPD", xlab = "Environmental Distance")
+rc(phyModel, ylab = "Phylogenetic MPD", xlab = "Environmental Distance")
+
+
+
+
+
 
 
 
