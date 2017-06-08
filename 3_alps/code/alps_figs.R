@@ -1,4 +1,14 @@
-## FIG 1 - look at response curves of 3 models
+library(mbm)
+
+## FIG 1 - look at response curves of models
+taxModelMF <- readRDS("3_alps/res/taxModelMF.rds")
+taxModel <- readRDS("3_alps/res/taxModel.rds")
+
+# par(mfrow=c(1,2))
+rc(taxModel)
+rc(taxModelMF, col_line = '#3355aa', add=TRUE, col_pt = NA)
+
+
 # plot(taxModel, sterr=TRUE)
 # par(mfrow = c(3, 1))
 # rc(taxModel, ylim=c(0,1), ylab="Sørensen Dissimilarity", xlab="Environmental Distance")

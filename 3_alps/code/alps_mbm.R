@@ -1,6 +1,6 @@
-# devtools::install_local("~/work/projects/mbm/mbmtools")
+# devtools::install_local("~/work/projects/mbm/mbm")
 
-library("mbmtools")
+library("mbm")
 library("mbmdata")
 library("ape")
 # library(reshape2)
@@ -56,18 +56,33 @@ phDis <- cophenetic(alps$phylogeny)
 phMPD <- lapply(rows, function(r) mpd(alps$siteGenus[r,], dis=phDis))
 
 
+tryCatch({
+		funModel <- mbm(trMPD$fit, envMat$fit, predictX = envMat['valid'], link='identity', response_curve = 'distance', y_name = 'functional')
+		saveRDS(funModel, '3_alps/res/funModel.rds')
+	}, error=function(e) print(e))
+tryCatch({
+		phyModel <- mbm(phMPD$fit, envMat$fit, predictX = envMat['valid'], link='identity', response_curve = 'distance', y_name = 'phylogenetic')
+		saveRDS(phyModel, '3_alps/res/phyModel.rds')
+	}, error=function(e) print(e))
+tryCatch({
 taxModel <- mbm(taxBeta$fit, envMat$fit, predictX = envMat['valid'], link='probit', response_curve = 'distance', y_name = 'taxo')
-taxModel2 <- mbm(taxBeta$fit, envMat$fit, predictX = envMat['valid'], link='probit', response_curve = 'distance', y_name = 'taxo', 
+		saveRDS(taxModel, '3_alps/res/taxModel.rds')
+	}, error=function(e) print(e))
+tryCatch({
+		taxModel2 <- mbm(taxBeta$fit, envMat$fit, predictX = envMat['valid'], link='probit', response_curve = 'distance', y_name = 'taxo_2',
 				 lengthscale = c(round(taxModel$params[2]*2, 1), rep(NA, ncol(envMat$fit))))
-taxModel0.5 <- mbm(taxBeta$fit, envMat$fit, predictX = envMat['valid'], link='probit', response_curve = 'distance', y_name = 'taxo', 
+		saveRDS(taxModel2, '3_alps/res/taxModel2.rds')
+	}, error=function(e) print(e))
+tryCatch({
+		taxModel0.2 <- mbm(taxBeta$fit, envMat$fit, predictX = envMat['valid'], link='probit', response_curve = 'distance', y_name = 'taxo_0.2',
 			   lengthscale = c(round(taxModel$params[2]*0.2, 1), rep(NA, ncol(envMat$fit))))
-funModel <- mbm(trMPD$fit, envMat$fit, predictX = envMat['valid'], link='identity', response_curve = 'distance', y_name = 'functional')
-phyModel <- mbm(phMPD$fit, envMat$fit, predictX = envMat['valid'], link='identity', response_curve = 'distance', y_name = 'phylogenetic')
-saveRDS(taxModel, '3_alps/res/taxModel.rds')
-saveRDS(taxModel0.5, '3_alps/res/taxModel0_5.rds')
-saveRDS(taxModel2, '3_alps/res/taxModel2.rds')
-saveRDS(funModel, '3_alps/res/funModel.rds')
-saveRDS(phyModel, '3_alps/res/phyModel.rds')
+		saveRDS(taxModel0.2, '3_alps/res/taxModel0_2.rds')
+	}, error=function(e) print(e))
+tryCatch({
+	taxModelMF <- mbm(taxBeta$fit, envMat$fit, predictX = envMat['valid'], link='probit', response_curve = 'distance', y_name = 'taxo_mf', 
+					   mean_func='increasing')
+	saveRDS(taxModelMF, '3_alps/res/taxModelMF.rds')
+}, error=function(e) print(e))
 
 
 
