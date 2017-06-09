@@ -24,19 +24,27 @@ get_rows <- function(minElev, maxElev, elev, n, mask) {
 
 elevBands <- seq(0,3500,250)
 maxN <- ceiling(100 / (length(elevBands) - 1)) # 100 is the approx target final N; --> 9 per band
-# choose rows
-rows <- unlist(mapply(get_rows, minElev=elevBands[1:(length(elevBands)-1)], maxElev=elevBands[2:length(elevBands)], 
-					  MoreArgs=list(elev=alps$siteEnv[,'elev'], n=maxN, mask=keep)))
 
-## FOR TESTING: just 15 sites
-# rows <- sample(rows, 15)
 
-# validation rows
-rows <- list(fit = rows, valid = sample((1:nrow(alps$siteEnv))[-rows], length(rows)))
+# update, rows have been chosen, so we just load them
+if(file.exists("3_alps/res/selectedRows.rds"))
+{
+	rows <- readRDS("3_alps/res/selectedRows.rds")
+} else {
+	# choose rows
+	rows <- unlist(mapply(get_rows, minElev=elevBands[1:(length(elevBands)-1)], maxElev=elevBands[2:length(elevBands)], 
+						  MoreArgs=list(elev=alps$siteEnv[,'elev'], n=maxN, mask=keep)))
+	# validation rows
+	rows <- list(fit = rows, valid = sample((1:nrow(alps$siteEnv))[-rows], length(rows)))
+	saveRDS(rows, '3_alps/res/selectedRows.rds')
+}
 
 envVars <- c('bio_4', 'bio_6', 'bio_7', 'bio_15')
 envMat <- lapply(rows, function(r) as.matrix(alps$siteEnv[r,envVars]))
 taxBeta <- lapply(rows, function(r) sorensen(alps$siteSpecies[r,]))
+saveRDS(taxBeta, "3_alps/res/gdmdat/taxBeta.rds")
+saveRDS(envMat, "3_alps/res/gdmdat/envMat.rds")
+saveRDS(lapply(rows, function(r) as.matrix(alps$siteEnv[r,c('x', 'y')])), "3_alps/res/gdmdat/coords.rds")
 
 # functional MPD
 trMat <- alps$spTrait
@@ -50,12 +58,19 @@ trMat <- scale(trMat)
 trDis <- as.matrix(dist(trMat))
 trDis <- trDis / max(trDis)
 trMPD <- lapply(rows, function(r) mpd(alps$siteSpecies[r,], dis=trDis))
+saveRDS(trMPD, "3_alps/res/gdmdat/funBeta.rds")
 
 # phylo MPD
 phDis <- cophenetic(alps$phylogeny)
 phMPD <- lapply(rows, function(r) mpd(alps$siteGenus[r,], dis=phDis))
+saveRDS(phMPD, "3_alps/res/gdmdat/phyBeta.rds")
 
 
+tryCatch({
+	taxModelMF <- mbm(taxBeta$fit, envMat$fit, predictX = envMat['valid'], link='probit', response_curve = 'distance', y_name = 'taxo_mf', 
+					  force_increasing = TRUE)
+	saveRDS(taxModelMF, '3_alps/res/taxModelMF.rds')
+}, error=function(e) print(e))
 tryCatch({
 		funModel <- mbm(trMPD$fit, envMat$fit, predictX = envMat['valid'], link='identity', response_curve = 'distance', y_name = 'functional')
 		saveRDS(funModel, '3_alps/res/funModel.rds')
@@ -78,11 +93,6 @@ tryCatch({
 			   lengthscale = c(round(taxModel$params[2]*0.2, 1), rep(NA, ncol(envMat$fit))))
 		saveRDS(taxModel0.2, '3_alps/res/taxModel0_2.rds')
 	}, error=function(e) print(e))
-tryCatch({
-	taxModelMF <- mbm(taxBeta$fit, envMat$fit, predictX = envMat['valid'], link='probit', response_curve = 'distance', y_name = 'taxo_mf', 
-					   mean_func='increasing')
-	saveRDS(taxModelMF, '3_alps/res/taxModelMF.rds')
-}, error=function(e) print(e))
 
 
 
