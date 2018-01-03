@@ -61,8 +61,8 @@ env
 tp <- "pdf"
 cols <- c("#ff644b", "#005ab8")
 
-quartz(width=6.5, height=3.5, pointsize=10, type=tp, file=paste0("3_alps/img/gdm.", tp), bg='white', dpi=600)
-par(mfrow=c(1,2), bty='n', mar=c(4,4,0,0), bty='n', oma=c(0, 0, 0.5, 0.5))
+quartz(width=6.2, height=8.5, pointsize=10, type=tp, file=paste0("3_alps/img/gdm.", tp), bg='white', dpi=600)
+par(mfrow=c(3,2), bty='n', mar=c(4,4,0,0), bty='n', oma=c(0, 0, 0.5, 0.5))
 
 rc(taxMBM, cex_pt=0.2, xlab="Environmental Distance", ylab="Sørensen Dissimilarity", ylim=c(0,1.1), lwd=2, pch=16, col_line=cols[1])
 text(grconvertX(0.02, from='npc'), grconvertY(0.92, from='npc'), 'A', pos=4, cex=1.5)
@@ -77,7 +77,7 @@ overlayX <- seq(from = min(x$ecological), to = max(x$ecological),
 overlayY <- 1 - exp(-overlayX)
 lines(overlayX, overlayY, lwd = 2, col=cols[1])
 text(grconvertX(0.02, from='npc'), grconvertY(0.92, from='npc'), 'B', pos=4, cex=1.5)
-dev.off()
+# dev.off()
 
 
 
@@ -118,12 +118,12 @@ gdmMod.f <- gdm(gdmDat.f, geo=FALSE)
 
 
 
-quartz(width=6.5, height=6.5, pointsize=10, type=tp, file=paste0("3_alps/img/gdms2.", tp), bg='white', dpi=600)
-par(mfrow=c(2,2), bty='n', mar=c(4,4,0,0), bty='n', oma=c(0, 0, 0.5, 0.5))
+# quartz(width=6.5, height=6.5, pointsize=10, type=tp, file=paste0("3_alps/img/gdms2.", tp), bg='white', dpi=600)
+# par(mfrow=c(2,2), bty='n', mar=c(4,4,0,0), bty='n', oma=c(0, 0, 0.5, 0.5))
 
 rc(funMBM, cex_pt=0.2, xlab="Environmental Distance", ylab="Functional MPD", lwd=2, pch=16, col_line=cols[1])
 # mtext("Sørensen Dissimilarity", side=2, line=3)
-text(grconvertX(0, from='npc'), grconvertY(0.85, from='npc'), 'A', pos=4, cex=1.5)
+text(grconvertX(0, from='npc'), grconvertY(0.85, from='npc'), 'C', pos=4, cex=1.5)
 x <- gdmMod.f
 plot(x$ecological, x$observed, xlab = "GDM Ecological Distance", 
 	 ylab = "", type = "n"
@@ -133,12 +133,12 @@ overlayX <- seq(from = min(x$ecological), to = max(x$ecological),
 				length = 200)
 overlayY <- 1 - exp(-overlayX)
 lines(overlayX, overlayY, lwd = 2, col=cols[1])
-text(grconvertX(0, from='npc'), grconvertY(0.85, from='npc'), 'B', pos=4, cex=1.5)
+text(grconvertX(0, from='npc'), grconvertY(0.85, from='npc'), 'D', pos=4, cex=1.5)
 
 
 
 rc(phyMBM, cex_pt=0.2, xlab="Environmental Distance", ylab="Phylogenetic MPD", lwd=2, pch=16, col_line=cols[1])
-text(grconvertX(0.05, from='npc'), grconvertY(0.9, from='npc'), 'C', pos=4, cex=1.5)
+text(grconvertX(0.05, from='npc'), grconvertY(0.9, from='npc'), 'E', pos=4, cex=1.5)
 # mtext("Sørensen Dissimilarity", side=2, line=3)
 x <- gdmMod.p
 plot(x$ecological, x$observed, xlab = "GDM Ecological Distance", 
@@ -149,7 +149,7 @@ overlayX <- seq(from = min(x$ecological), to = max(x$ecological),
 				length = 200)
 overlayY <- 1 - exp(-overlayX)
 lines(overlayX, overlayY, lwd = 2, col=cols[1])
-text(grconvertX(0.05, from='npc'), grconvertY(0.9, from='npc'), 'D', pos=4, cex=1.5)
+text(grconvertX(0.05, from='npc'), grconvertY(0.9, from='npc'), 'F', pos=4, cex=1.5)
 dev.off()
 
 

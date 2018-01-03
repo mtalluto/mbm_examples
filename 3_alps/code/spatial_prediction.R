@@ -58,37 +58,52 @@ loadMBMSP <- function(file)
 }
 
 
+
+blackBody <- function(n, extended = FALSE, ...)
+{
+	if(extended) {
+		bbcols <- read.csv("3_alps/dat/extblackbody.csv", head=TRUE)[,-1]
+	} else {
+		bbcols <- read.csv("3_alps/dat/blackbody.csv", head=TRUE)[,-1]
+	}
+	
+	bbcols <- apply(bbcols, 1, function(x) rgb(x[1], x[2], x[3], maxColorValue = 255))
+	colorRampPalette(bbcols, ...)(n)
+}
+
+extendedBlackBody <- function(n, ...) blackBody(n, extended=TRUE, ...)
+
 if(any(grepl('draw', args)))
 {
 	taxSpatial <- loadMBMSP('3_alps/res/spatial/taxSpatial')
 	funSpatial <- loadMBMSP('3_alps/res/spatial/funSpatial')
 	phySpatial <- loadMBMSP('3_alps/res/spatial/phySpatial')
 
-	xl <- extent(taxSpatial$fits)[1:2]
 	yl <- extent(taxSpatial$fits)[3:4]
 	quartz(w=9, h=6, type='png', file="3_alps/img/spatialPredict.png", dpi=300, bg='white')
 	par(mfrow=c(2,3), oma=c(1,0,3,2), mar=c(0,0,2,1))
 
 	raster::plot(taxSpatial$fits[[1]], box=FALSE, axes=FALSE, alpha=0, legend=FALSE)
 	raster::plotRGB(taxSpatial$fits[[c(1,3,2)]], scale=1, add=TRUE)
-	mtext("A. Taxonomic Diversity", side=3, line=2)
+	mtext("A. Taxonomic β-diversity", side=3, line=2)
 
 	raster::plot(taxSpatial$fits[[1]], box=FALSE, axes=FALSE, alpha=0, legend=FALSE)
 	raster::plotRGB(funSpatial$fits[[c(1,3,2)]], scale=1, add=TRUE)
-	mtext("B. Functional Diversity", side=3, line=2)
+	mtext("B. Functional β-diversity", side=3, line=2)
 
 	raster::plot(taxSpatial$fits[[1]], box=FALSE, axes=FALSE, alpha=0, legend=FALSE)
 	raster::plotRGB(phySpatial$fits[[c(2,3,1)]], scale=1, add=TRUE)
-	mtext("C. Phylogenetic Diversity", side=3, line=2)
+	mtext("C. Phylogenetic β-diversity", side=3, line=2)
 
 	# plot(xl,yl, type='n', axes=F, xlab='', ylab='')
-	raster::plot(taxSpatial$stdev, col=heat.colors(100), box=FALSE, axes=FALSE)
+	raster::plot(taxSpatial$stdev, col=blackBody(200, bias=2), box=FALSE, axes=FALSE)
+	xl <- extent(taxSpatial$fits)[1:2]
 
 	# plot(xl,yl, type='n', axes=F, xlab='', ylab='')
-	raster::plot(funSpatial$stdev, col=heat.colors(100), box=FALSE, axes=FALSE)
+	raster::plot(funSpatial$stdev, col=blackBody(200, bias=2), box=FALSE, axes=FALSE)
 
 	# plot(xl,yl, type='n', axes=F, xlab='', ylab='')
-	raster::plot(phySpatial$stdev, col=heat.colors(100), box=FALSE, axes=FALSE)
+	raster::plot(phySpatial$stdev, col=blackBody(200, bias=2), box=FALSE, axes=FALSE)
 
 	dev.off()	
 }

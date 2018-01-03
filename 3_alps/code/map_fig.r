@@ -31,8 +31,15 @@ quartz(width=6.5, height=4, pointsize=11, type=tp, file=paste0("3_alps/img/map."
 par(mfrow=c(1,2), bty='n', mar=c(4,4,4,0))
 plot(ras, col=c('#dddddd', pal[2:3]), legend=FALSE, xaxt='n', yaxt='n', bty='n')
 legend('topleft', pch=15, col=pal[2:3], legend=c("Calibration", "Validation"), cex=0.8)
+# scalebar(d = 100*1000, type = 'bar', divs = 4, below = 'km', label=c('0', '50', '100'), cex=0.8)
 
 plotRGB(crop(natEP, crop2))
 plot(crop(bndP, crop2), add=TRUE, lwd=0.5)
+# plot(crop(bndP, crop2), add=FALSE, lwd=0.5)
 plot(alpMask, col=paste0(pal[1], 'aa'), add=T, legend=FALSE)
+par(xpd=NA)
+scalebar(d = 250*1000, xy =c(grconvertX(0.75, from='npc'), grconvertY(-0.1, from='npc')), 
+	type = 'line', label = '250 km', cex=0.5, lwd=0.7)
+# scalebar(d = 800*1000, xy =c(grconvertX(0.43, from='npc'), grconvertY(-0.15, from='npc')), 
+# 	type = 'bar', divs = 4, below = 'km', label=c('0', '400', '800'), cex=0.5)
 dev.off()
