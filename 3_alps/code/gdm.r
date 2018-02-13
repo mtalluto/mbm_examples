@@ -64,7 +64,7 @@ cols <- c("#ff644b", "#005ab8")
 quartz(width=6.2, height=8.5, pointsize=10, type=tp, file=paste0("3_alps/img/gdm.", tp), bg='white', dpi=600)
 par(mfrow=c(3,2), bty='n', mar=c(4,4,0,0), bty='n', oma=c(0, 0, 0.5, 0.5))
 
-rc(taxMBM, cex_pt=0.2, xlab="Environmental Distance", ylab="Sørensen Dissimilarity", ylim=c(0,1.1), lwd=2, pch=16, col_line=cols[1])
+rc(taxMBM, cex_pt=0.2, xlab="Climatic Distance", ylab="Sørensen Dissimilarity", ylim=c(0,1.1), lwd=2, pch=16, col_line=cols[1])
 text(grconvertX(0.02, from='npc'), grconvertY(0.92, from='npc'), 'A', pos=4, cex=1.5)
 # mtext("Sørensen Dissimilarity", side=2, line=3)
 x <- gdmMod
@@ -121,7 +121,7 @@ gdmMod.f <- gdm(gdmDat.f, geo=FALSE)
 # quartz(width=6.5, height=6.5, pointsize=10, type=tp, file=paste0("3_alps/img/gdms2.", tp), bg='white', dpi=600)
 # par(mfrow=c(2,2), bty='n', mar=c(4,4,0,0), bty='n', oma=c(0, 0, 0.5, 0.5))
 
-rc(funMBM, cex_pt=0.2, xlab="Environmental Distance", ylab="Functional MPD", lwd=2, pch=16, col_line=cols[1])
+rc(funMBM, cex_pt=0.2, xlab="Climatic Distance", ylab="Functional MPD", lwd=2, pch=16, col_line=cols[1])
 # mtext("Sørensen Dissimilarity", side=2, line=3)
 text(grconvertX(0, from='npc'), grconvertY(0.85, from='npc'), 'C', pos=4, cex=1.5)
 x <- gdmMod.f
@@ -137,7 +137,7 @@ text(grconvertX(0, from='npc'), grconvertY(0.85, from='npc'), 'D', pos=4, cex=1.
 
 
 
-rc(phyMBM, cex_pt=0.2, xlab="Environmental Distance", ylab="Phylogenetic MPD", lwd=2, pch=16, col_line=cols[1])
+rc(phyMBM, cex_pt=0.2, xlab="Climatic Distance", ylab="Phylogenetic MPD", lwd=2, pch=16, col_line=cols[1])
 text(grconvertX(0.05, from='npc'), grconvertY(0.9, from='npc'), 'E', pos=4, cex=1.5)
 # mtext("Sørensen Dissimilarity", side=2, line=3)
 x <- gdmMod.p
