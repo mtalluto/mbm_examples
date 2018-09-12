@@ -12,6 +12,7 @@ library("mbmdata")
 
 # load the model
 taxMBM <- readRDS("3_alps/res/taxModelMF.rds")
+taxMBMnoMF <- readRDS("3_alps/res/taxModel.rds")
 phyMBM <- readRDS("3_alps/res/phyModel.rds")
 funMBM <- readRDS("3_alps/res/funModel.rds")
 taxBeta <- readRDS("3_alps/res/gdmdat/taxBeta.rds")
@@ -58,13 +59,15 @@ env
 
 
 # FIGURE 4: plot response curves against distance
-tp <- "pdf"
+tp <- "tiff"
 cols <- c("#ff644b", "#005ab8")
 
-quartz(width=6.2, height=8.5, pointsize=10, type=tp, file=paste0("3_alps/img/gdm.", tp), bg='white', dpi=600)
+quartz(width=6.2, height=8.5, pointsize=10, type=tp, file=paste0("3_alps/img/gdm.", tp), bg='white', dpi=300)
 par(mfrow=c(3,2), bty='n', mar=c(4,4,0,0), bty='n', oma=c(0, 0, 0.5, 0.5))
 
 rc(taxMBM, cex_pt=0.2, xlab="Climatic Distance", ylab="Sørensen Dissimilarity", ylim=c(0,1.1), lwd=2, pch=16, col_line=cols[1])
+rc(taxMBMnoMF, add=TRUE, col_pt = NA, col_line = cols[2], lwd=2)
+
 text(grconvertX(0.02, from='npc'), grconvertY(0.92, from='npc'), 'A', pos=4, cex=1.5)
 # mtext("Sørensen Dissimilarity", side=2, line=3)
 x <- gdmMod

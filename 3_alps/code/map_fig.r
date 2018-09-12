@@ -26,7 +26,7 @@ bndP <- spTransform(bndC, proj4string(ras))
 natEP <- projectRaster(natEC, crs=proj4string(ras))
 crop2 <- extent(c(-1346391.6, 624983.5, 671160.1, 2555926.6))
 
-tp <- 'png'
+tp <- 'tiff'
 quartz(width=6.5, height=4, pointsize=11, type=tp, file=paste0("3_alps/img/map.", tp), bg='white', dpi=600)
 par(mfrow=c(1,2), bty='n', mar=c(4,4,4,0))
 plot(ras, col=c('#dddddd', pal[2:3]), legend=FALSE, xaxt='n', yaxt='n', bty='n')

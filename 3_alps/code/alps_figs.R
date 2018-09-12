@@ -5,7 +5,7 @@ funModel <- readRDS("3_alps/res/funModel.rds")
 phyModel <- readRDS("3_alps/res/phyModel.rds")
 
 ## FIG 2 - look at response curves of models
-tp <- "pdf"
+tp <- "tiff"
 cex_pt <- 0.2
 pch <- 16
 

@@ -68,6 +68,8 @@ run_gdm <- function(X, Y)
 {
 	gdmDat <- format_gdm(X, Y)
 	gdm(gdmDat, geo=FALSE)
+	# gdm.varImp(gdmDat, geo=FALSE, nPerm=1000, parallel=TRUE, cores=4)
+
 }
 gdm_predict <- function(mod, newX, newY)
 {
